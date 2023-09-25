@@ -1,3 +1,4 @@
+#include <vector>
 #include <inspectable.h>
 
 template <typename T>
@@ -53,6 +54,7 @@ namespace winrt {
 		consume_t<IContactField>
 	{
 		IContactField(std::nullptr_t = nullptr) noexcept {}
+		IContactField(const IContactField& other) noexcept {}
 		IContactField(void* ptr, take_ownership_from_abi_t) noexcept /* : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) */ {}
 	};
 }
@@ -60,7 +62,21 @@ namespace winrt {
 struct __declspec(empty_bases)ContactField : winrt::IContactField
 {
 	ContactField(std::nullptr_t) noexcept {}
+	ContactField(const ContactField& other) noexcept {}
 	ContactField(void* ptr, take_ownership_from_abi_t) noexcept : IContactField(ptr, take_ownership_from_abi) {}
+};
+
+struct base
+{
+	base() {}
+	base(const base& other) noexcept {}
+};
+
+struct derived : base
+{
+	int data;
+	derived(int in) : base() { data = in; }
+	derived(const derived& other) : base(other) { this->data = other.data; }
 };
 
 int main()
@@ -69,4 +85,28 @@ int main()
 	auto result = field.Name();
 
 	int size = sizeof(field);
+
+	std::vector<winrt::IContactField> myvec(2);
+
+	const winrt::IContactField& ref = field;
+
+	myvec.push_back(ref);
+	myvec.push_back(field);
+
+	std::vector<base> bases;
+
+	derived d1(10);
+	base b1;
+	derived d2(20);
+
+	const derived& dref1 = d1;
+
+	bases.push_back(d1);
+	bases.push_back(d2);
+	bases.push_back(b1);
+	bases.push_back(dref1);
+
+	
 }
+
+
